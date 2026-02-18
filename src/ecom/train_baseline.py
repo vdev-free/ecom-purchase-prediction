@@ -1,15 +1,16 @@
 from pathlib import Path
 import mlflow
 import pandas as pd
-from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import os
 from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.preprocessing import OneHotEncoder, FunctionTransformer, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import average_precision_score, roc_auc_score, precision_score, recall_score
+from sklearn.metrics import average_precision_score, confusion_matrix, roc_auc_score, precision_score, recall_score
+from ecom.features import add_features
+
 
 DATA_PATH = Path("data/processed/online_shoppers_clean.csv")
 
@@ -27,12 +28,12 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=
 
 # Columns by type
 cat_cols = ['Month', 'VisitorType']
-num_cols = [c for c in X.columns if c not in cat_cols]
+features_step = FunctionTransformer(add_features, validate=False)
 
 preprocess = ColumnTransformer(
     transformers=[
         ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols),
-        ('num', 'passthrough', num_cols)
+        ('num', Pipeline(steps=[('scaler', StandardScaler())]), make_column_selector(dtype_include=['int64', 'float64']))
     ]
 )
 
@@ -40,15 +41,16 @@ model = LogisticRegression(max_iter=1000)
 
 clf = Pipeline(
     steps=[
+        ('features', features_step),
         ('preprocess', preprocess),
         ('model', model)
     ]
 )
 
 mlflow.set_tracking_uri("file:./mlruns")
-mlflow.set_experiment('ecom-baseline')
+mlflow.set_experiment('ecom-features')
 
-with mlflow.start_run(run_name='logreg_baseline'):
+with mlflow.start_run(run_name='logreg_with_features'):
 
   clf.fit(X_train, y_train)
 
@@ -62,7 +64,9 @@ with mlflow.start_run(run_name='logreg_baseline'):
 
   mlflow.log_param("model", "logistic_regression")
   mlflow.log_param("threshold", 0.3)
-
+  mlflow.log_param("feature_engineering", "v1_total_pages_total_duration_duration_per_page")
+  mlflow.log_param("baseline_experiment", "ecom-baseline")
+  mlflow.log_param("baseline_run", "logreg_baseline")
   mlflow.log_metric("pr_auc", pr_auc)
   mlflow.log_metric("roc_auc", roc_auc)
   mlflow.log_metric("precision", precision)
@@ -78,14 +82,14 @@ with mlflow.start_run(run_name='logreg_baseline'):
   ax.set_xticks([0, 1])
   ax.set_yticks([0, 1])
 
-  # підписи чисел у клітинках
   for (i, j), v in zip([(0,0),(0,1),(1,0),(1,1)], cm.flatten()):
       ax.text(j, i, str(v), ha="center", va="center")
 
   plt.tight_layout()
 
   os.makedirs("artifacts", exist_ok=True)
-  path = "artifacts/confusion_matrix.png"
+  run_id = mlflow.active_run().info.run_id
+  path = f"artifacts/confusion_matrix_{run_id}.png"
   plt.savefig(path)
   plt.close(fig)
 
