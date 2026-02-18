@@ -219,3 +219,7 @@ venv/
 artifacts/
 mlruns/
 .venv/
+
+models/
+mlruns/
+artifacts/
