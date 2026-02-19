@@ -23,9 +23,11 @@ Each row represents one user session.
 ### Success Metrics
 
 Primary metric:
+
 - PR-AUC (due to class imbalance)
 
 Secondary metrics:
+
 - ROC-AUC
 - Precision
 - Recall
@@ -189,59 +191,58 @@ PYTHONPATH=src python -m ecom.train_tune
 
 ---
 
-# Current Project Status (Production-Oriented)
+## Day 101 — Thresholding + Error Analysis (business operating point)
 
-✅ Reproducible data pipeline  
-✅ Feature engineering inside sklearn Pipeline  
-✅ Stratified cross-validation  
-✅ Hyperparameter tuning  
-✅ MLflow experiment tracking  
-✅ Saved production-ready model artifact  
+Model outputs probabilities, so we selected an operating threshold based on business constraints.
 
----
+### Threshold sweep (fixed thresholds)
 
-# Next Steps (Days 101–110)
+| threshold | pred1_rate | precision | recall |
+| --------: | ---------: | --------: | -----: |
+|       0.1 |      0.460 |     0.322 |  0.948 |
+|       0.2 |      0.188 |     0.591 |  0.712 |
+|       0.3 |      0.120 |     0.703 |  0.539 |
+|       0.4 |      0.093 |     0.752 |  0.445 |
+|       0.5 |      0.070 |     0.779 |  0.351 |
 
-- Threshold optimization (business-aligned precision/recall)
-- Error analysis
-- Model explainability (SHAP)
-- Model packaging
-- FastAPI inference service
-- Dockerization
-- CI pipeline
-- Cloud deployment
+Saved artifact: `artifacts/threshold_sweep.csv` (also logged to MLflow).
 
----
+### Quota-based thresholding (top-k strategy)
 
-# Project Structure
+We often have an operational limit (e.g. discounts/support can be shown only to a fraction of sessions).
+So we select the threshold to target a fixed quota.
 
+Quota = 0.20:
+
+- threshold ≈ 0.1908
+- pred1_rate ≈ 0.2003
+- precision ≈ 0.5644
+- recall ≈ 0.7225
+- confusion matrix: TN=1846 FP=213 FN=106 TP=276
+
+### Cost-based operating point selection
+
+Assumed costs:
+
+- FP_cost = 1€
+- FN_cost = 5€
+
+Total cost = FP _ FP_cost + FN _ FN_cost
+
+| quota | threshold | precision | recall |  FP |  FN | total_cost |
+| ----: | --------: | --------: | -----: | --: | --: | ---------: |
+|  0.10 |    0.3650 |     0.727 |  0.466 |  67 | 204 |       1087 |
+|  0.20 |    0.1908 |     0.564 |  0.723 | 213 | 106 |        743 |
+|  0.30 |    0.1427 |     0.442 |  0.848 | 409 |  58 |        699 |
+
+✅ Recommended operating point (min cost): **quota = 0.30**  
+Run is logged in MLflow experiment `ecom-thresholding`:
+
+- `threshold_quota_0.2` (baseline quota run)
+- `recommended_quota_0.30_fp1_fn5` (cost-based choice)
+
+Run:
+
+```bash
+PYTHONPATH=src python -m ecom.train_threshold
 ```
-src/ecom/
-  train_baseline.py
-  train_cv.py
-  train_tune.py
-  pipeline.py
-  features.py
-
-data/
-  processed/
-
-models/
-mlruns/
-```
-
----
-
-# How to Reproduce
-
-1. Install dependencies
-2. Prepare data
-3. Run baseline
-4. Run CV
-5. Run tuning
-6. Open MLflow UI
-
----
-
-This project follows a production-style ML workflow,
-not just notebook experimentation.
