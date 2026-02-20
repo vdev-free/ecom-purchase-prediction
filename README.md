@@ -241,8 +241,56 @@ Run is logged in MLflow experiment `ecom-thresholding`:
 - `threshold_quota_0.2` (baseline quota run)
 - `recommended_quota_0.30_fp1_fn5` (cost-based choice)
 
+---
+
+## Day 102 — Explainability (SHAP) + Model Card
+
+### Goal
+
+Make the model decision transparent and understandable.
+
+The model outputs probabilities, but business stakeholders need to understand:
+
+- which features drive predictions
+- whether the model logic aligns with domain knowledge
+
+---
+
+## SHAP Explainability
+
+We used SHAP (SHapley Additive exPlanations) for the trained Logistic Regression pipeline.
+
+Pipeline steps:
+
+1. Feature engineering (`add_features`)
+2. Preprocessing (OneHotEncoder + StandardScaler)
+3. Logistic Regression
+
+SHAP was computed on the transformed feature space (after preprocessing), because this is the actual input to the model.
+
+### Global Feature Importance
+
+Feature importance was computed as:
+
+mean(|SHAP value|) per feature
+
+Top features:
+
+- PageValues
+- ExitRates
+- Month (seasonality effects)
+- BounceRates
+- Administrative
+- SpecialDay
+- Weekend
+
+Artifact:
+
+- `artifacts/shap_top_features.csv`
+- Logged to MLflow experiment `ecom-explainability`
+
 Run:
 
 ```bash
 PYTHONPATH=src python -m ecom.train_threshold
-```
+````

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-
+import mlflow
 import joblib
 import numpy as np
 import pandas as pd
@@ -55,6 +55,16 @@ def main() -> None:
 
     print("Saved:", out_path)
     print(top.head(10).to_string(index=False))
+
+    mlflow.set_tracking_uri("file:./mlruns")
+    mlflow.set_experiment("ecom-explainability")
+
+    with mlflow.start_run(run_name="shap_global_importance"):
+        mlflow.log_param("sample_size", int(n))
+        mlflow.log_metric("num_features_logged", int(len(top)))
+        mlflow.log_artifact(str(out_path))
+
+        print("Logged MLflow run: shap_global_importance")
 
 
 if __name__ == "__main__":
