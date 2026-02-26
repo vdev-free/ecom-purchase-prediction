@@ -1,6 +1,7 @@
-from pathlib import Path
-import joblib
 import os
+from pathlib import Path
+
+import joblib
 
 MODEL_PATH = Path("models/best_model.joblib")
 BUNDLE_PATH = Path("models/model_bundle.joblib")

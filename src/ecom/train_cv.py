@@ -1,6 +1,8 @@
-from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
+
 from ecom.train_baseline import build_pipeline
 
 DATA_PATH = Path("data/processed/online_shoppers_clean.csv")

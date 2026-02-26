@@ -1,7 +1,7 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import APIRouter, HTTPException
 
 from ecom.api.schemas import PredictRequest, PredictResponse
-from ecom.inference import predict_one, load_bundle
+from ecom.inference import load_bundle, predict_one
 
 router = APIRouter()
 
@@ -20,4 +20,4 @@ def predict(req: PredictRequest) -> PredictResponse:
         result = predict_one(req.model_dump(), bundle)
         return PredictResponse(**result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

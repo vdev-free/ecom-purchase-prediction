@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from src.ecom.data_loader import load_raw_data
 
 DATA_PATH = Path('data/raw/online_shoppers.csv')

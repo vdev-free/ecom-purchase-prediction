@@ -1,25 +1,23 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
+import matplotlib.pyplot as plt
 import mlflow
 import pandas as pd
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer, make_column_selector
-from sklearn.preprocessing import OneHotEncoder, FunctionTransformer, StandardScaler
-from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     average_precision_score,
     confusion_matrix,
-    roc_auc_score,
     precision_score,
     recall_score,
+    roc_auc_score,
 )
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 
 from ecom.features import add_features
-
 
 DATA_PATH = Path("data/processed/online_shoppers_clean.csv")
 
@@ -101,7 +99,7 @@ def main() -> None:
         ax.set_xticks([0, 1])
         ax.set_yticks([0, 1])
 
-        for (i, j), v in zip([(0, 0), (0, 1), (1, 0), (1, 1)], cm.flatten()):
+        for (i, j), v in zip([(0, 0), (0, 1), (1, 0), (1, 1)], cm.flatten(), strict=False):
             ax.text(j, i, str(v), ha="center", va="center")
 
         plt.tight_layout()

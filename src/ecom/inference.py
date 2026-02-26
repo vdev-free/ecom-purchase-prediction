@@ -1,16 +1,18 @@
 from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
+
 import joblib
 import pandas as pd
 
 BUNDLE_PATH = Path("models/model_bundle.joblib")
 
-def load_bundle(path: Path = BUNDLE_PATH) -> Dict[str, Any]:
+def load_bundle(path: Path = BUNDLE_PATH) -> dict[str, Any]:
     bundle = joblib.load(path)
     return bundle
 
-def predict_one(session: Dict[str, Any], bundle: Dict[str, Any]) -> Dict[str, Any]:
+def predict_one(session: dict[str, Any], bundle: dict[str, Any]) -> dict[str, Any]:
     model = bundle['model']
     threshold = bundle['threshold']
 

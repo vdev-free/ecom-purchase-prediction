@@ -1,13 +1,13 @@
-from pathlib import Path
-import joblib
 import os
-import pandas as pd
-from sklearn.model_selection import train_test_split
-import numpy as np
-from sklearn.metrics import precision_score, recall_score, confusion_matrix
-import pandas as pd
-import mlflow
+from pathlib import Path
+
+import joblib
 import matplotlib.pyplot as plt
+import mlflow
+import numpy as np
+import pandas as pd
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
+from sklearn.model_selection import train_test_split
 
 DATA_PATH = Path("data/processed/online_shoppers_clean.csv")
 MODEL_PATH = Path("models/best_model.joblib")
@@ -103,7 +103,7 @@ def main() -> None:
       ax.set_ylabel("Actual")
       ax.set_xticks([0, 1])
       ax.set_yticks([0, 1])
-      for (i, j), v in zip([(0,0),(0,1),(1,0),(1,1)], cm.flatten()):
+      for (i, j), v in zip([(0,0),(0,1),(1,0),(1,1)], cm.flatten(), strict=False):
         ax.text(j, i, str(v), ha="center", va="center")
       plt.tight_layout()
 

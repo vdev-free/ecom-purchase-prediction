@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def clean_data(df: pd.DataFrame, drop_duplicates: bool = True) -> pd.DataFrame:
     out = df.copy()
     out['Revenue'] = out['Revenue'].astype(int)
