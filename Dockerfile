@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -U pip && \
 
 COPY src ./src
 COPY INFERENCE_CONTRACT.md ./INFERENCE_CONTRACT.md
-COPY models/model_bundle.joblib ./models/model_bundle.joblib
+COPY models/best_model.joblib ./models/best_model.joblib
+RUN PYTHONPATH=src python -m ecom.package_model
 
 EXPOSE 8000
 ENV PYTHONPATH=src
