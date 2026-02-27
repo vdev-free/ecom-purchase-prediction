@@ -294,3 +294,13 @@ Run:
 ```bash
 PYTHONPATH=src python -m ecom.train_threshold
 ````
+## 🚀 Deployed API
+
+Cloud Run URL:
+https://ecom-api-427310068062.europe-north1.run.app
+
+### Health check
+GET /health
+
+### Prediction
+POST /predict
