@@ -5,6 +5,7 @@
 ![Docker](https://img.shields.io/badge/Docker-containerized-blue)
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-black)
 ![Cloud](https://img.shields.io/badge/Deployed-Google%20Cloud%20Run-orange)
+![CI](https://github.com/vdev-free/ecom-purchase-prediction/actions/workflows/ci.yml/badge.svg)
 
 > End-to-end production-grade machine learning service with CI/CD, containerization, cloud deployment and monitoring.  
 > Built by an ML Engineer with strong frontend and system engineering background.
@@ -54,6 +55,20 @@ Model Packaging (joblib) → FastAPI → Docker →
 Artifact Registry → Cloud Run → Monitoring
 
 The service is stateless and horizontally scalable.
+
+```mermaid
+flowchart LR
+  A[Client / curl / Postman] -->|HTTPS| B[Cloud Run: FastAPI service]
+  B -->|loads| C[Model bundle (joblib) inside Docker image]
+  B --> D[Structured logs]
+  D --> E[Cloud Logging]
+  B --> F[Cloud Monitoring metrics<br/>latency, request count, errors]
+
+  subgraph CI/CD
+    G[GitHub Actions] --> H[Buildx: linux/amd64 image]
+    H --> I[Artifact Registry (Docker)]
+    I --> J[Deploy to Cloud Run]
+  end
 
 ---
 
