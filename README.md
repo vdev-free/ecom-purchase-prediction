@@ -1,5 +1,11 @@
 # Production ML API – E-commerce Purchase Prediction
 
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-production-green)
+![Docker](https://img.shields.io/badge/Docker-containerized-blue)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-black)
+![Cloud](https://img.shields.io/badge/Deployed-Google%20Cloud%20Run-orange)
+
 > End-to-end production-grade machine learning service with CI/CD, containerization, cloud deployment and monitoring.  
 > Built by an ML Engineer with strong frontend and system engineering background.
 
