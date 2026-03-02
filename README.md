@@ -1,306 +1,288 @@
-# E-commerce Purchase Prediction
+# Production ML API – E-commerce Purchase Prediction
 
-## Business Problem (Day 96)
+> End-to-end production-grade machine learning service with CI/CD, containerization, cloud deployment and monitoring.  
+> Built by an ML Engineer with strong frontend and system engineering background.
 
-An e-commerce company wants to predict whether a user session will end with a purchase.
+---
 
-By predicting high-intent sessions, the company can:
+## Project Overview
 
-- show targeted discounts
-- trigger real-time support
-- optimize marketing spend
-- improve conversion rate
+This project demonstrates how to design, train, productionize, and deploy a real-world machine learning model as a scalable cloud service.
 
-### Prediction Task
+It includes:
 
-Binary classification:
+- Data cleaning & feature engineering
+- Model training & evaluation
+- ML experiment tracking
+- Model packaging
+- FastAPI inference service
+- Docker containerization
+- CI with GitHub Actions
+- Deployment to Google Cloud Run
+- Monitoring (logs, metrics, latency analysis)
 
-- 1 → user completed purchase
-- 0 → user did not purchase
+The focus of this project is **production readiness**, not just model accuracy.
 
-Each row represents one user session.
+---
 
-### Success Metrics
+## Business Problem
 
-Primary metric:
+Predict whether an online user session will result in a purchase.
 
-- PR-AUC (due to class imbalance)
+This enables:
 
-Secondary metrics:
+- Marketing optimization
+- High-intent user prioritization
+- Conversion improvement
+- Budget efficiency
+
+**Dataset:** Online Shoppers Purchasing Intention Dataset  
+**Task:** Binary Classification
+
+---
+
+## Architecture
+
+Data → Feature Engineering → Model Training →  
+Model Packaging (joblib) → FastAPI → Docker →  
+Artifact Registry → Cloud Run → Monitoring
+
+The service is stateless and horizontally scalable.
+
+---
+
+## Tech Stack
+
+- Python 3.12
+- FastAPI
+- scikit-learn
+- pandas
+- NumPy
+- MLflow
+- Docker
+- GitHub Actions
+- Google Cloud Run
+- Artifact Registry
+- Cloud Monitoring
+
+---
+
+## Model Development
+
+Feature processing:
+
+- ColumnTransformer
+- OneHotEncoder
+- StandardScaler
+- Pipeline
+
+Evaluation metrics:
 
 - ROC-AUC
-- Precision
-- Recall
+- PR-AUC
+- Precision / Recall
+- Confusion Matrix
+
+Final model artifact:
+
+- `models/model_bundle.joblib`
 
 ---
 
-# Full ML Project (Days 96–100)
+## API Endpoints
 
-## Day 96 — Problem Framing + Experiment Plan
+### Health Check
 
-Defined:
+**GET** `/health`
 
-- Clear business objective
-- Target variable: `Revenue`
-- Primary metric: PR-AUC
-- Secondary metrics: ROC-AUC, Precision, Recall
-- Experimental roadmap
+Response:
 
----
-
-## Day 97 — EDA + Data Cleaning (Script-based)
-
-Converted exploratory work into reproducible scripts:
-
-- `data_cleaning.py`
-- `run_data_check.py`
-- `run_make_processed.py`
-
-Key steps:
-
-- Missing value checks
-- Type corrections
-- Basic sanity validation
-- Saved cleaned dataset to:
-
+```json
+{ "status": "ok" }
 ```
-data/processed/online_shoppers_clean.csv
-```
-
-Reproducible pipeline (not notebook-only).
-
----
-
-## Day 98 — Baseline Model + MLflow Tracking
-
-Implemented:
-
-- Logistic Regression baseline
-- Train/test split (stratified)
-- Metrics:
-  - PR-AUC
-  - ROC-AUC
-  - Precision
-  - Recall
-- Confusion matrix artifact
-
-Tracked in MLflow:
-
-- Parameters
-- Metrics
-- Artifacts
-
-Run:
-
-```bash
-PYTHONPATH=src python -m ecom.train_baseline
-```
-
-MLflow UI:
-
-```bash
-mlflow ui
-# http://127.0.0.1:5000
-```
-
----
-
-## Day 99 — Feature Engineering + Production Pipeline
-
-Created production-ready pipeline:
-
-Pipeline steps:
-
-1. `add_features` (custom feature engineering)
-2. ColumnTransformer:
-   - OneHotEncoder (categorical)
-   - StandardScaler (numerical)
-3. LogisticRegression
-
-Implemented via:
-
-```
-build_pipeline()
-```
-
-Ensures:
-
-- No data leakage
-- Reproducibility
-- Single object for training & inference
-
----
-
-## Day 100 — Cross-Validation + Hyperparameter Tuning
-
-### Cross-Validation (Stratified 5-Fold)
-
-Evaluated stability:
-
-- CV ROC-AUC scores:
-  - 0.86896
-  - 0.88627
-  - 0.88535
-  - 0.88110
-  - 0.89124
-- Mean CV ROC-AUC: **0.88258**
-
-Run:
-
-```bash
-PYTHONPATH=src python -m ecom.train_cv
-```
-
----
-
-### Hyperparameter Tuning (RandomizedSearchCV)
-
-Tuned:
-
-- LogisticRegression `C`
-
-Search configuration:
-
-- 5-fold Stratified CV
-- 15 random samples
-- Scoring: ROC-AUC
-
-Results:
-
-- Best C: `0.010826367338740546`
-- Best CV ROC-AUC: **0.89245**
-- Test ROC-AUC: **0.90487**
-
-Saved:
-
-```
-models/best_model.joblib
-```
-
-Logged to MLflow experiment:
-
-```
-ecom-tuning
-```
-
-Run:
-
-```bash
-PYTHONPATH=src python -m ecom.train_tune
-```
-
----
-
-## Day 101 — Thresholding + Error Analysis (business operating point)
-
-Model outputs probabilities, so we selected an operating threshold based on business constraints.
-
-### Threshold sweep (fixed thresholds)
-
-| threshold | pred1_rate | precision | recall |
-| --------: | ---------: | --------: | -----: |
-|       0.1 |      0.460 |     0.322 |  0.948 |
-|       0.2 |      0.188 |     0.591 |  0.712 |
-|       0.3 |      0.120 |     0.703 |  0.539 |
-|       0.4 |      0.093 |     0.752 |  0.445 |
-|       0.5 |      0.070 |     0.779 |  0.351 |
-
-Saved artifact: `artifacts/threshold_sweep.csv` (also logged to MLflow).
-
-### Quota-based thresholding (top-k strategy)
-
-We often have an operational limit (e.g. discounts/support can be shown only to a fraction of sessions).
-So we select the threshold to target a fixed quota.
-
-Quota = 0.20:
-
-- threshold ≈ 0.1908
-- pred1_rate ≈ 0.2003
-- precision ≈ 0.5644
-- recall ≈ 0.7225
-- confusion matrix: TN=1846 FP=213 FN=106 TP=276
-
-### Cost-based operating point selection
-
-Assumed costs:
-
-- FP_cost = 1€
-- FN_cost = 5€
-
-Total cost = FP _ FP_cost + FN _ FN_cost
-
-| quota | threshold | precision | recall |  FP |  FN | total_cost |
-| ----: | --------: | --------: | -----: | --: | --: | ---------: |
-|  0.10 |    0.3650 |     0.727 |  0.466 |  67 | 204 |       1087 |
-|  0.20 |    0.1908 |     0.564 |  0.723 | 213 | 106 |        743 |
-|  0.30 |    0.1427 |     0.442 |  0.848 | 409 |  58 |        699 |
-
-✅ Recommended operating point (min cost): **quota = 0.30**  
-Run is logged in MLflow experiment `ecom-thresholding`:
-
-- `threshold_quota_0.2` (baseline quota run)
-- `recommended_quota_0.30_fp1_fn5` (cost-based choice)
-
----
-
-## Day 102 — Explainability (SHAP) + Model Card
-
-### Goal
-
-Make the model decision transparent and understandable.
-
-The model outputs probabilities, but business stakeholders need to understand:
-
-- which features drive predictions
-- whether the model logic aligns with domain knowledge
-
----
-
-## SHAP Explainability
-
-We used SHAP (SHapley Additive exPlanations) for the trained Logistic Regression pipeline.
-
-Pipeline steps:
-
-1. Feature engineering (`add_features`)
-2. Preprocessing (OneHotEncoder + StandardScaler)
-3. Logistic Regression
-
-SHAP was computed on the transformed feature space (after preprocessing), because this is the actual input to the model.
-
-### Global Feature Importance
-
-Feature importance was computed as:
-
-mean(|SHAP value|) per feature
-
-Top features:
-
-- PageValues
-- ExitRates
-- Month (seasonality effects)
-- BounceRates
-- Administrative
-- SpecialDay
-- Weekend
-
-Artifact:
-
-- `artifacts/shap_top_features.csv`
-- Logged to MLflow experiment `ecom-explainability`
-
-Run:
-
-```bash
-PYTHONPATH=src python -m ecom.train_threshold
-````
-## 🚀 Deployed API
-
-Cloud Run URL:
-https://ecom-api-427310068062.europe-north1.run.app
-
-### Health check
-GET /health
 
 ### Prediction
-POST /predict
+
+**POST** `/predict`
+
+Example:
+
+```bash
+curl -X POST https://ecom-api-427310068062.europe-north1.run.app/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "Administrative": 0,
+    "Administrative_Duration": 0.0,
+    "Informational": 0,
+    "Informational_Duration": 0.0,
+    "ProductRelated": 1,
+    "ProductRelated_Duration": 10.0,
+    "BounceRates": 0.2,
+    "ExitRates": 0.3,
+    "PageValues": 100.0,
+    "SpecialDay": 0.0,
+    "Month": "May",
+    "OperatingSystems": 2,
+    "Browser": 2,
+    "Region": 1,
+    "TrafficType": 1,
+    "VisitorType": "Returning_Visitor",
+    "Weekend": false
+  }'
+```
+
+Response:
+
+```json
+{
+  "probability": 0.546,
+  "prediction": 1,
+  "threshold": 0.1427,
+  "model_version": "v1"
+}
+```
+
+---
+
+## Local Development
+
+Clone repository:
+
+```bash
+git clone https://github.com/vdev-free/ecom-purchase-prediction.git
+cd ecom-purchase-prediction
+```
+
+Create virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run API locally:
+
+```bash
+uvicorn src.main:app --reload --port 8000
+```
+
+Open:
+
+- http://localhost:8000/docs
+
+---
+
+## Run Tests
+
+```bash
+pytest -q
+```
+
+---
+
+## Docker Build (Local)
+
+```bash
+docker build -t ecom-api:local .
+docker run -p 8000:8000 ecom-api:local
+```
+
+---
+
+## Cloud Deployment (Google Cloud Run)
+
+Build & push image (example):
+
+```bash
+docker buildx build \
+  --platform linux/amd64 \
+  -t europe-north1-docker.pkg.dev/ecom-ml-api/ecom-api/ecom-api:v1
+  --push .
+```
+
+Deploy to Cloud Run:
+
+```bash
+gcloud run deploy ecom-api \
+  --image europe-north1-docker.pkg.dev/ecom-ml-api/ecom-api/ecom-api:v1 \
+  --allow-unauthenticated \
+  --region=europe-north1 \
+  --port 8000
+```
+
+---
+
+## CI/CD
+
+GitHub Actions pipeline includes:
+
+- Unit tests
+- Smoke tests
+- Docker build
+- Multi-platform support
+- Registry push
+
+Ensures reproducible builds and production readiness.
+
+---
+
+## Monitoring & Observability
+
+Cloud Monitoring metrics:
+
+- Request count
+- End-to-End request latency (95th percentile)
+- Cold start analysis
+- Autoscaling events
+
+Observed in tests:
+
+- Cold start ~6–7 seconds
+- Warm request latency < 500ms
+- Autoscaling verified
+
+---
+
+## What I Learned
+
+Shipping ML to production requires more engineering than modeling.
+
+- CI/CD is essential for reliability
+- Infrastructure behavior (cold starts, scaling) matters
+- Monitoring is as important as model metrics
+- Model contracts must be explicit and stable
+
+My frontend and system engineering background helped in:
+
+- API design
+- DevOps workflows
+- Containerization
+- Observability
+- Performance analysis
+
+This project reflects my ability to move from experimentation to production-grade ML systems.
+
+---
+
+## Future Improvements
+
+- Model versioning endpoint
+- A/B testing
+- Automatic retraining pipeline
+- Infrastructure-as-Code
+- Load testing
+- Canary deployment
+
+---
+
+## Author
+
+**Volodymyr Udovychenko**  
+ML Engineer with strong frontend/system background  
+Helsinki, Finland
