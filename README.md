@@ -273,22 +273,26 @@ Observed in tests:
 
 ## What I Learned
 
-Shipping ML to production requires more engineering than modeling.
+Building ML models is the easy part.
 
-- CI/CD is essential for reliability
-- Infrastructure behavior (cold starts, scaling) matters
-- Monitoring is as important as model metrics
-- Model contracts must be explicit and stable
+Production ML requires:
+
+- Reproducible training and packaging
+- Stable inference contracts
+- CI/CD automation
+- Cloud-native deployment
+- Observability and monitoring
+- Understanding infrastructure behavior (cold starts, scaling)
+
+The biggest shift was moving from experimentation to system thinking.
 
 My frontend and system engineering background helped in:
+- API design and contract stability
+- Containerization and deployment workflows
+- Monitoring and performance analysis
+- Treating ML as a production system, not a notebook
 
-- API design
-- DevOps workflows
-- Containerization
-- Observability
-- Performance analysis
-
-This project reflects my ability to move from experimentation to production-grade ML systems.
+This project reflects my ability to ship reliable ML systems end-to-end.
 
 ---
 
