@@ -223,3 +223,6 @@ mlruns/
 models/
 mlruns/
 artifacts/
+
+!models/
+!models/model_bundle.joblib
