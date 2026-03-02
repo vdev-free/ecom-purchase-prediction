@@ -69,6 +69,7 @@ flowchart LR
     H --> I[Artifact Registry (Docker)]
     I --> J[Deploy to Cloud Run]
   end
+```
 
 ---
 
