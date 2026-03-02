@@ -58,15 +58,15 @@ The service is stateless and horizontally scalable.
 
 ```mermaid
 flowchart LR
-  A[Client / curl / Postman] -->|HTTPS| B[Cloud Run: FastAPI service]
-  B -->|loads| C[Model bundle (joblib) inside Docker image]
+  A[Client - curl - Postman] -->|HTTPS| B[Cloud Run - FastAPI service]
+  B -->|loads| C[Model bundle joblib in Docker image]
   B --> D[Structured logs]
   D --> E[Cloud Logging]
-  B --> F[Cloud Monitoring metrics<br/>latency, request count, errors]
+  B --> F[Cloud Monitoring metrics latency requests errors]
 
-  subgraph CI/CD
-    G[GitHub Actions] --> H[Buildx: linux/amd64 image]
-    H --> I[Artifact Registry (Docker)]
+  subgraph CI_CD
+    G[GitHub Actions] --> H[Buildx linux amd64 image]
+    H --> I[Artifact Registry Docker]
     I --> J[Deploy to Cloud Run]
   end
 ```
